@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
-
 import setting from '../assets/settings.svg';
 
 class App extends Component {
@@ -18,6 +17,27 @@ class App extends Component {
     value: '',
     selected: 'all', // all, completed, uncompleted
   };
+  onCheck = (key) => {
+    this.setState({
+      todos: this.state.todos.map(todo => (
+        todo.key === key
+          ? ({
+            key,
+            data: {
+              text: todo.data.text,
+              isDone: !todo.data.isDone,
+            },
+          })
+          : todo
+      )),
+    });
+  }
+  onDelete = (key) => {
+    console.log(key);
+    this.setState({
+      todos: this.state.todos.filter(todo => todo.key !== key),
+    });
+  }
   handleChange = ({ target: { value } }) => {
     this.setState({ value });
   };
@@ -56,7 +76,14 @@ class App extends Component {
 
     const clearButton = value && <ClearButton onClick={this.clearValue}>X</ClearButton>;
     const todoElements = todos.map(({ key, data: { text, isDone } }) => (
-      <Todo key={key} text={text} isDone={isDone} active={this.isTodoActive(isDone, selected)} />
+      <Todo
+        key={key}
+        text={text}
+        isDone={isDone}
+        active={this.isTodoActive(isDone, selected)}
+        onCheck={() => this.onCheck(key)}
+        onDelete={() => this.onDelete(key)}
+      />
     ));
 
     return (
@@ -92,9 +119,15 @@ const ClearButton = styled.button`
   color: white;
   font-size: 1em;
 `;
-const Todo = ({ text, active }) => (
+const Todo = ({
+  text, active, onCheck, isDone, onDelete,
+}) => (
   <div className={active ? 'todo-active' : 'todo-inactive'}>
-    <span>{`${text} `}</span>
+    <div>
+      <input type="checkbox" checked={isDone} onChange={onCheck} />
+      <span>{`${text} `}</span>
+    </div>
+    <button onClick={onDelete}>del</button>
   </div>
 );
 
@@ -156,12 +189,15 @@ export default styled(App)`
     }
   }
   .content {
-    div {
-      height: 30px;
-      span {
-        color: black;
-      }
+    & > div {
+      height: 40px;
+      display: flex;
+      justify-content: space-between;
     }
+  }
+  footer {
+    border-top: solid 1px black;
+    margin-top: 20px;
   }
 `;
 
