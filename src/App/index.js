@@ -5,6 +5,7 @@ import { styler, tween, easing } from 'popmotion';
 
 import Todo from '../Components/Todo';
 import EditingTodo from '../Components/EditingTodo';
+import cross from '../assets/cross.svg';
 
 const setCSStoBlur = (container) => {
   container.style.filter = 'blur(2px)';
@@ -20,13 +21,10 @@ class App extends Component {
   state = {
     todos: [
       { key: '1', data: { text: 'react', isDone: false } },
-      { key: '2', data: { text: 'react-native', isDone: false } },
       { key: '3', data: { text: 'redux', isDone: false } },
-      { key: '4', data: { text: 'react-redux', isDone: false } },
       { key: '5', data: { text: 'rxjs', isDone: false } },
-      { key: '6', data: { text: 'create-react-native-app', isDone: false } },
       { key: '7', data: { text: 'expo', isDone: true } },
-      { key: '8', data: { text: 'create-react-app', isDone: false } },
+      { key: '9', data: { text: 'create-react-app', isDone: false } },
     ],
     value: '',
     editing: {
@@ -139,7 +137,7 @@ class App extends Component {
     const { className } = this.props;
     const { todos, value, selected } = this.state;
 
-    const clearButton = value && <ClearButton onClick={this.clearValue}>X</ClearButton>;
+    const clearButton = value && <ClearButton onClick={this.clearValue}><img src={cross} /></ClearButton>;
     const todoElements = todos.map(({ key, data: { text, isDone } }) => (
       <Todo
         key={key}
@@ -185,6 +183,11 @@ const ClearButton = styled.button`
   border: 0;
   color: white;
   font-size: 1em;
+  img {
+    width: 20px;
+    height: 20px;
+    transform: translateY(4px);
+  }
 `;
 
 export default styled(App)`
@@ -215,7 +218,8 @@ export default styled(App)`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px; 
+    padding: 11px; 
+    padding-left: 20px;
     background-color: pink;
     .input-container {
       flex-grow: 1;
@@ -224,6 +228,10 @@ export default styled(App)`
       justify-content: space-between;
       align-items: center;
       height: 50px;
+      form {
+        margin-right: 15px;
+        width: 350px;
+      }
       input {
         font-size: 1em;
         margin: 0;

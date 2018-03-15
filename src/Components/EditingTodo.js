@@ -1,17 +1,24 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
+import PropTypes from 'prop-types';
 
 class EditingTodo extends Component {
+  static propTypes = {
+    className: PropTypes.string.isRequired,
+    text: PropTypes.string.isRequired,
+    getRef: PropTypes.func.isRequired,
+    onEdited: PropTypes.func.isRequired,
+  };
   state = {
     text: this.props.text,
+  }
+  componentDidMount() {
+    this.props.getRef(this.element);
   }
   componentWillReceiveProps(nextProps) {
     this.setState({
       text: nextProps.text,
     });
-  }
-  componentDidMount() {
-    this.props.getRef(this.element);
   }
   onEdited = () => {
     const { onEdited } = this.props;
@@ -29,15 +36,15 @@ class EditingTodo extends Component {
   }
   render() {
     const {
-      className, text,
+      className,
     } = this.props;
     return (
-      <div className={className} ref={r => this.element = r}>
+      <div className={className} ref={(r) => { this.element = r; }}>
         <div className="content">
           <div className="text">
             <span>編輯</span>
             <form onSubmit={this.onSubmit}>
-              <input type="text" onChange={this.onChange} value={this.state.text} placeholder={text} ref={r => this.input = r} />
+              <input type="text" onChange={this.onChange} value={this.state.text} ref={(r) => { this.input = r; }} />
             </form>
           </div>
           <div className="button">
