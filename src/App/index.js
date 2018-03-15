@@ -1,6 +1,20 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
 import setting from '../assets/settings.svg';
+import { styler, tween, easing } from 'popmotion';
+
+import Todo from '../Components/Todo';
+import EditingTodo from '../Components/EditingTodo';
+
+const setCSStoBlur = (container) => {
+  container.style.filter = 'blur(2px)';
+  container.style.opacity = '0.7';
+};
+
+const setCSSnotBlur = (container) => {
+  container.style.filter = 'blur(0px)';
+  container.style.opacity = '1';
+};
 
 class App extends Component {
   state = {
@@ -15,8 +29,16 @@ class App extends Component {
       { key: '8', data: { text: 'create-react-app', isDone: false } },
     ],
     value: '',
+    editing: {
+      text: '',
+      key: '',
+    },
+    mode: 'add', // add, filter
     selected: 'all', // all, completed, uncompleted
   };
+  componentDidMount() {
+    this.editingTodoStyler = styler(this.editingTodo);
+  }
   onCheck = (key) => {
     this.setState({
       todos: this.state.todos.map(todo => (
@@ -33,10 +55,53 @@ class App extends Component {
     });
   }
   onDelete = (key) => {
-    console.log(key);
     this.setState({
       todos: this.state.todos.filter(todo => todo.key !== key),
     });
+  }
+  onEdit = (key, { x, y }) => {
+    const todo = this.state.todos.find(t => t.key === key);
+    this.setState({
+      editing: {
+        text: todo.data.text,
+        key,
+      },
+    });
+    setCSStoBlur(this.wrapper);
+    tween({
+      from: { top: y, left: x, opacity: 0 },
+      to: { top: y - 5, left: x + 5, opacity: 1 },
+      duration: 500,
+      ease: easing.backOut,
+    }).start(this.editingTodoStyler.set);
+  }
+
+  onEdited = (text) => {
+    const todoIndex = this.state.todos.findIndex(t => t.key === this.state.editing.key);
+    const { key, data: { isDone } } = this.state.todos[todoIndex];
+    const y = this.editingTodoStyler.get('top');
+    const x = this.editingTodoStyler.get('left');
+    this.setState({
+      todos: [
+        ...this.state.todos.slice(0, todoIndex),
+        { key, data: { text, isDone } },
+        ...this.state.todos.slice(todoIndex + 1),
+      ],
+    });
+    setTimeout(() => {
+      this.setState({
+        editing: {
+          text: '',
+          key: '',
+        },
+      });
+    }, 300);
+    setCSSnotBlur(this.wrapper);
+    tween({
+      from: { top: y, left: x, opacity: 1 },
+      to: { top: y + 5, left: x - 5, opacity: 0 },
+      duration: 300,
+    }).start(this.editingTodoStyler.set);
   }
   handleChange = ({ target: { value } }) => {
     this.setState({ value });
@@ -83,12 +148,13 @@ class App extends Component {
         active={this.isTodoActive(isDone, selected)}
         onCheck={() => this.onCheck(key)}
         onDelete={() => this.onDelete(key)}
+        onEdit={position => this.onEdit(key, position)}
       />
     ));
 
     return (
       <section className={className}>
-        <section className="wrapper">
+        <section className="wrapper" ref={r => this.wrapper = r}>
           <h1 className="todo-title">todos</h1>
           <header>
             <section className="input-container">
@@ -108,6 +174,7 @@ class App extends Component {
             hi i am footer
           </footer>
         </section>
+        <EditingTodo text={this.state.editing.text} getRef={r => this.editingTodo = r} onEdited={this.onEdited} />
       </section>
     );
   }
@@ -119,18 +186,6 @@ const ClearButton = styled.button`
   color: white;
   font-size: 1em;
 `;
-const Todo = ({
-  text, active, onCheck, isDone, onDelete,
-}) => (
-  <div className={active ? 'todo-active' : 'todo-inactive'}>
-    <div>
-      <input type="checkbox" checked={isDone} onChange={onCheck} />
-      <span>{`${text} `}</span>
-    </div>
-    <button onClick={onDelete}>del</button>
-  </div>
-);
-
 
 export default styled(App)`
   height: 100%;
@@ -148,6 +203,7 @@ export default styled(App)`
   }
 
   .wrapper {
+    transition-duration: .5s;
     background-color: white;
     width: 500px;
     box-shadow: 4px 10px 25px -8px rgba(0,0,0,0.75);
@@ -186,13 +242,6 @@ export default styled(App)`
         width: 30px;
         height: 30px;
       }
-    }
-  }
-  .content {
-    & > div {
-      height: 40px;
-      display: flex;
-      justify-content: space-between;
     }
   }
   footer {
