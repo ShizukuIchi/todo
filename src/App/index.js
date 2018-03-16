@@ -10,11 +10,11 @@ import cross from '../assets/cross.svg';
 const setCSStoBlur = (container) => {
   container.style.filter = 'blur(2px)';
   container.style.opacity = '0.7';
+  container.style.pointerEvents = 'none';
 };
 
 const setCSSnotBlur = (container) => {
-  container.style.filter = 'blur(0px)';
-  container.style.opacity = '1';
+  container.style = '';
 };
 
 class App extends Component {
@@ -125,10 +125,24 @@ class App extends Component {
   clearValue = () => {
     this.setState({ value: '' });
   }
+  clearCompleted = () => {
+    const { todos } = this.state;
+    this.setState({
+      selected: 'completed',
+    });
+    setTimeout(() => this.setState({
+      todos: todos.filter(todo => !todo.data.isDone),
+    }), 300);
+  }
+  setSelected = (selected) => {
+    this.setState({
+      selected,
+    });
+  }
   isTodoActive = (isDone, selected) => {
     if (selected === 'all') {
       return true;
-    } else if (selected === 'completed') {
+    } else if (selected === 'uncompleted') {
       return isDone === true;
     }
     return isDone === false;
@@ -137,7 +151,7 @@ class App extends Component {
     const { className } = this.props;
     const { todos, value, selected } = this.state;
 
-    const clearButton = value && <ClearButton onClick={this.clearValue}><img src={cross} /></ClearButton>;
+    const clearButton = value && <ClearButton onClick={this.clearValue}><img src={cross} alt="x" /></ClearButton>;
     const todoElements = todos.map(({ key, data: { text, isDone } }) => (
       <Todo
         key={key}
@@ -169,7 +183,14 @@ class App extends Component {
             {todoElements}
           </section>
           <footer>
-            hi i am footer
+            <div className="clear-completed">
+              <button type="button" onClick={this.clearCompleted}>clear</button>
+            </div>
+            <div className="selected">
+              <button type="button" onClick={() => this.setSelected('all')}>all</button>
+              <button type="button" onClick={() => this.setSelected('completed')}>Completed</button>
+              <button type="button" onClick={() => this.setSelected('uncompleted')}>Uncompleted</button>
+            </div>
           </footer>
         </section>
         <EditingTodo text={this.state.editing.text} getRef={r => this.editingTodo = r} onEdited={this.onEdited} />
@@ -186,16 +207,16 @@ const ClearButton = styled.button`
   img {
     width: 20px;
     height: 20px;
-    transform: translateY(4px);
   }
 `;
 
 export default styled(App)`
-  height: 100%;
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 100px;
   display: flex;
   justify-content: center;
-  align-items: center;
-  background-color: lightgray;  
 
   .todo-title {
     position: absolute;
@@ -214,7 +235,10 @@ export default styled(App)`
   }
 
   header {
+    box-shadow: 0 2px 2px -2px gray;
     border-radius: 2px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -238,10 +262,13 @@ export default styled(App)`
         height: 100%;
         background-color: transparent;
         border: 0;
-      }
-      .clear-icon {
-        width: 30px;
-        height: 30px;
+        &::placeholder {
+          font-style: italic;
+          opacity: 0.3;
+        }
+        &:focus {
+          outline: none;
+        }
       }
     }
     .settings {
@@ -253,8 +280,18 @@ export default styled(App)`
     }
   }
   footer {
+    width: 100%;
     border-top: solid 1px black;
-    margin-top: 20px;
+    display: flex;
+    font-size: 18px;
+    display: flex;
+    justify-content: space-between
+    .clear-completed {
+    }
+    .selected {
+      display: flex;
+      justify-content: space-between;
+    }
   }
 `;
 
