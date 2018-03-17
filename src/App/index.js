@@ -5,18 +5,16 @@ import { styler, tween, easing } from 'popmotion';
 import setting from '../assets/settings.svg';
 import Todo from '../Components/Todo';
 import EditingTodo from '../Components/EditingTodo';
+import cross from '../assets/cross.svg';
 
 class App extends Component {
   state = {
     todos: [
       { key: '1', data: { text: 'react', isDone: false } },
-      { key: '2', data: { text: 'react-native', isDone: false } },
       { key: '3', data: { text: 'redux', isDone: false } },
-      { key: '4', data: { text: 'react-redux', isDone: false } },
       { key: '5', data: { text: 'rxjs', isDone: false } },
-      { key: '6', data: { text: 'create-react-native-app', isDone: false } },
       { key: '7', data: { text: 'expo', isDone: true } },
-      { key: '8', data: { text: 'create-react-app', isDone: false } },
+      { key: '9', data: { text: 'create-react-app', isDone: false } },
     ],
     value: '',
     editing: {
@@ -96,10 +94,24 @@ class App extends Component {
   clearValue = () => {
     this.setState({ value: '' });
   }
+  clearCompleted = () => {
+    const { todos } = this.state;
+    this.setState({
+      selected: 'completed',
+    });
+    setTimeout(() => this.setState({
+      todos: todos.filter(todo => !todo.data.isDone),
+    }), 300);
+  }
+  setSelected = (selected) => {
+    this.setState({
+      selected,
+    });
+  }
   isTodoActive = (isDone, selected) => {
     if (selected === 'all') {
       return true;
-    } else if (selected === 'completed') {
+    } else if (selected === 'uncompleted') {
       return isDone === true;
     }
     return isDone === false;
@@ -144,7 +156,14 @@ class App extends Component {
             {todoElements}
           </section>
           <footer>
-            hi i am footer
+            <div className="clear-completed">
+              <button type="button" onClick={this.clearCompleted}>clear</button>
+            </div>
+            <div className="selected">
+              <button type="button" onClick={() => this.setSelected('all')}>all</button>
+              <button type="button" onClick={() => this.setSelected('completed')}>Completed</button>
+              <button type="button" onClick={() => this.setSelected('uncompleted')}>Uncompleted</button>
+            </div>
           </footer>
         </section>
         <EditingTodo text={editingText} position={this.state.editing.position} onEdited={this.onEdited} />
@@ -158,14 +177,19 @@ const ClearButton = styled.button`
   border: 0;
   color: white;
   font-size: 1em;
+  img {
+    width: 20px;
+    height: 20px;
+  }
 `;
 
 export default styled(App)`
-  height: 100%;
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 100px;
   display: flex;
   justify-content: center;
-  align-items: center;
-  background-color: lightgray;  
 
   .todo-title {
     position: absolute;
@@ -188,11 +212,15 @@ export default styled(App)`
   }
 
   header {
+    box-shadow: 0 2px 2px -2px gray;
     border-radius: 2px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px; 
+    padding: 11px; 
+    padding-left: 20px;
     background-color: pink;
     .input-container {
       flex-grow: 1;
@@ -201,16 +229,23 @@ export default styled(App)`
       justify-content: space-between;
       align-items: center;
       height: 50px;
+      form {
+        margin-right: 15px;
+        width: 350px;
+      }
       input {
         font-size: 1em;
         margin: 0;
         height: 100%;
         background-color: transparent;
         border: 0;
-      }
-      .clear-icon {
-        width: 30px;
-        height: 30px;
+        &::placeholder {
+          font-style: italic;
+          opacity: 0.3;
+        }
+        &:focus {
+          outline: none;
+        }
       }
     }
     .settings {
@@ -222,8 +257,18 @@ export default styled(App)`
     }
   }
   footer {
+    width: 100%;
     border-top: solid 1px black;
-    margin-top: 20px;
+    display: flex;
+    font-size: 18px;
+    display: flex;
+    justify-content: space-between
+    .clear-completed {
+    }
+    .selected {
+      display: flex;
+      justify-content: space-between;
+    }
   }
 `;
 
