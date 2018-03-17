@@ -9,25 +9,32 @@ class EditingTodo extends Component {
   static propTypes = {
     className: PropTypes.string.isRequired,
     text: PropTypes.string.isRequired,
-    getRef: PropTypes.func.isRequired,
     onEdited: PropTypes.func.isRequired,
+    position: PropTypes.objectOf(PropTypes.number).isRequired,
   };
   state = {
     text: this.props.text,
   }
   componentDidMount() {
-    this.props.getRef(this.element);
+    this.styler = styler(this.element);
   }
   componentWillReceiveProps(nextProps) {
-    this.setState({
-      text: nextProps.text,
-    });
+    if (nextProps.text) {
+      this.setState({
+        text: nextProps.text,
+      });
+      this.mount(nextProps.position);
+    } else {
+      this.unmount();
+    }
   }
   onEdited = () => {
     const { onEdited } = this.props;
     if (this.input.value) {
       onEdited(this.input.value);
-      this.input.value = '';
+      this.setState({
+        text: '',
+      });
     } else {
       alert('Write something please');
     }
@@ -42,7 +49,8 @@ class EditingTodo extends Component {
     });
   }
   mount = ({ x, y }) => {
-    this.element.style.visibility = '';
+    this.element.style.visibility = 'visible';
+    this.input.focus();
     tween({
       from: { top: y, left: x, opacity: 0 },
       to: { top: y - 5, left: x + 5, opacity: 1 },
@@ -76,7 +84,7 @@ class EditingTodo extends Component {
           </div>
           <div className="button">
             <button onClick={this.onEdited}>
-              done
+              Okay
             </button>
           </div>
         </div>
@@ -87,9 +95,8 @@ class EditingTodo extends Component {
 
 export default styled(EditingTodo)`
   opacity: 0;
-  /* visibility: hidden; */
+  visibility: hidden;
   position: fixed;
-  top: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -106,6 +113,7 @@ export default styled(EditingTodo)`
       display: flex;
       align-items: center;
       input {
+        width: 350px;
         margin-left: 15px;
         font-size: 24px;
         border: 0;
@@ -114,8 +122,44 @@ export default styled(EditingTodo)`
         }
       }
       img {
-        height: 30px;
-        width: 30px;
+        height: 20px;
+        width: 20px;
+      }
+      button {
+        cursor: pointer;
+        color: #1c88ff;
+        font-size: 20px;
+        background: transparent;
+        border: 0;
+        &:focus {
+          outline: none;
+        }
+      }
+    }
+  }
+  @media (max-width:768px) {
+    .content {
+      width: 300px;
+      height: 30px;
+      padding: 0;
+      .text, .button {
+        form {
+          display: flex;
+          align-items: center;
+        }
+        input {
+          background: transparent;
+          width: 225px;
+          font-size: .6em;
+          margin-left: 5px;
+        }
+        img {
+          display: none;
+        }
+        button {
+          padding-left: 0;
+          padding-right: 5px;
+        }
       }
     }
   }

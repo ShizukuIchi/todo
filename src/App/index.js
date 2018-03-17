@@ -1,13 +1,18 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
-import { styler, tween, easing } from 'popmotion';
+import PropTypes from 'prop-types';
 
 import setting from '../assets/settings.svg';
 import Todo from '../Components/Todo';
+import Menu from '../Components/Menu';
 import EditingTodo from '../Components/EditingTodo';
 import cross from '../assets/cross.svg';
+import arrow from '../assets/left-arrow.svg';
 
 class App extends Component {
+  static propTypes = {
+    className: PropTypes.string.isRequired,
+  }
   state = {
     todos: [
       { key: '1', data: { text: 'react', isDone: false } },
@@ -23,9 +28,7 @@ class App extends Component {
     },
     selected: 'all', // all, completed, uncompleted
   };
-  componentDidMount() {
-    // this.editingTodoStyler = styler(this.editingTodo);
-  }
+
   onCheck = (key) => {
     this.setState({
       todos: this.state.todos.map(todo => (
@@ -42,9 +45,11 @@ class App extends Component {
     });
   }
   onDelete = (key) => {
-    this.setState({
-      todos: this.state.todos.filter(todo => todo.key !== key),
-    });
+    setTimeout(() => {
+      this.setState({
+        todos: this.state.todos.filter(todo => todo.key !== key),
+      });
+    }, 200);
   }
   onEdit = (key, { x, y }) => {
     this.setState({
@@ -54,7 +59,6 @@ class App extends Component {
       },
     });
   }
-
   onEdited = (text) => {
     const todoIndex = this.state.todos.findIndex(t => t.key === this.state.editing.key);
     const { key, data: { isDone } } = this.state.todos[todoIndex];
@@ -70,6 +74,19 @@ class App extends Component {
       },
     });
   }
+  onMenuToggle = () => {
+    this.setState({
+      editing: {
+        key: this.state.editing.key ? '' : 'menu',
+        position: { x: -1, y: -1 },
+      },
+    });
+  }
+  setSelected = (selected) => {
+    this.setState({
+      selected,
+    });
+  }
   handleChange = ({ target: { value } }) => {
     this.setState({ value });
   };
@@ -80,9 +97,9 @@ class App extends Component {
         value: '',
         todos: [
           {
-            key: new Date(),
+            key: new Date() + new Date().getMilliseconds(),
             data: {
-              text: e.target.firstChild.value,
+              text: e.target.lastChild.value,
               isDone: false,
             },
           },
@@ -97,35 +114,32 @@ class App extends Component {
   clearCompleted = () => {
     const { todos } = this.state;
     this.setState({
-      selected: 'completed',
+      selected: 'uncompleted',
     });
     setTimeout(() => this.setState({
       todos: todos.filter(todo => !todo.data.isDone),
     }), 300);
   }
-  setSelected = (selected) => {
-    this.setState({
-      selected,
-    });
-  }
   isTodoActive = (isDone, selected) => {
     if (selected === 'all') {
       return true;
-    } else if (selected === 'uncompleted') {
+    } else if (selected === 'completed') {
       return isDone === true;
     }
     return isDone === false;
   }
   render() {
-    console.log(this.state.editing.position);
-
     const { className } = this.props;
     const { todos, value, selected } = this.state;
-
-    const editingText = this.state.editing.key
-      ? this.state.todos.find(t => t.key === this.state.editing.key).data.text
-      : '';
-    const clearButton = value && <ClearButton onClick={this.clearValue}>X</ClearButton>;
+    let editingText;
+    if (this.state.editing.key === 'menu') {
+      editingText = '';
+    } else {
+      editingText = this.state.editing.key
+        ? this.state.todos.find(t => t.key === this.state.editing.key).data.text
+        : '';
+    }
+    const clearButton = value && <ClearButton onClick={this.clearValue}><img src={cross} alt="x" /></ClearButton>;
     const todoElements = todos.map(({ key, data: { text, isDone } }) => (
       <Todo
         key={key}
@@ -137,19 +151,21 @@ class App extends Component {
         onEdit={position => this.onEdit(key, position)}
       />
     ));
+    console.log(this.state.editing.key, 'key');
     return (
       <section className={className}>
         <section ref={(r) => { this.wrapper = r; }} className={this.state.editing.key ? 'wrapper-editing' : 'wrapper'}>
-          <h1 className="todo-title">todos</h1>
           <header>
+            <h1 className="todo-title">TODOS</h1>
             <section className="input-container">
               <form onSubmit={this.handleSubmit}>
-                <input type="text" placeholder="what to do..." value={value} onChange={this.handleChange} />
+                <label htmlFor="todo"><img src={arrow} alt="edit" /></label>
+                <input id="todo" type="text" placeholder="what to do..." value={value} onChange={this.handleChange} />
               </form>
               {clearButton}
             </section>
             <section className="settings">
-              <img className="settings-icon" src={setting} alt="settings" />
+              <img onClick={this.onMenuToggle} className="settings-icon" src={setting} alt="settings" />
             </section>
           </header>
           <section className="content">
@@ -157,37 +173,58 @@ class App extends Component {
           </section>
           <footer>
             <div className="clear-completed">
-              <button type="button" onClick={this.clearCompleted}>clear</button>
+              <button type="button" onClick={this.clearCompleted}>Clear completed</button>
             </div>
             <div className="selected">
-              <button type="button" onClick={() => this.setSelected('all')}>all</button>
-              <button type="button" onClick={() => this.setSelected('completed')}>Completed</button>
-              <button type="button" onClick={() => this.setSelected('uncompleted')}>Uncompleted</button>
+              <button type="button" style={{ color: this.state.selected === 'all' ? '#1c88ff' : 'black' }} onClick={() => this.setSelected('all')}>all</button>
+              <button type="button" style={{ color: this.state.selected === 'completed' ? '#1c88ff' : 'black' }} onClick={() => this.setSelected('completed')}>Completed</button>
+              <button type="button" style={{ color: this.state.selected === 'uncompleted' ? '#1c88ff' : 'black' }} onClick={() => this.setSelected('uncompleted')}>Uncompleted</button>
             </div>
           </footer>
         </section>
-        <EditingTodo text={editingText} position={this.state.editing.position} onEdited={this.onEdited} />
+        <EditingTodo
+          text={editingText}
+          position={this.state.editing.position}
+          onEdited={this.onEdited}
+        />
+        <Menu
+          show={this.state.editing.key === 'menu'}
+          onToggle={this.onMenuToggle}
+          onClearCompleted={this.onClearCompleted}
+          onSA={() => this.setSelected('all')}
+          onSC={() => this.setSelected('completed')}
+          onSU={() => this.setSelected('uncompleted')}
+          onCC={this.clearCompleted}
+          selected={this.state.selected}
+        />
       </section>
     );
   }
 }
 
 const ClearButton = styled.button`
+  cursor: pointer;
   background-color: transparent;
   border: 0;
   color: white;
   font-size: 1em;
+  &:focus {
+    outline: none;  
+  }
   img {
     width: 20px;
     height: 20px;
   }
+  @media (max-width:768px) {
+    display: none;
+  }
 `;
 
 export default styled(App)`
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: 100px;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  padding-top: 80px; 
   display: flex;
   justify-content: center;
 
@@ -196,10 +233,13 @@ export default styled(App)`
     margin: 0;
     color: white;
     text-shadow: 3px 3px 3px rgba(150, 150, 151, .5);
-    transform: translate(30px ,-55px);
+    line-height:60px;
+    transform: translateY(-50px);
   }
-
+  
   .wrapper, .wrapper-editing {
+    position: relative;
+    margin-bottom: auto;
     transition-duration: .5s;
     background-color: white;
     width: 500px;
@@ -207,6 +247,7 @@ export default styled(App)`
     border-radius: 2px;
   }
   .wrapper-editing {
+    pointer-events: none;
     filter: blur(2px);
     opacity: 0.7;
   }
@@ -219,9 +260,8 @@ export default styled(App)`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 11px; 
-    padding-left: 20px;
-    background-color: pink;
+    padding: 11px 14px; 
+    background-color: #6cb9f2;
     .input-container {
       flex-grow: 1;
       margin-right: 10px;
@@ -230,18 +270,28 @@ export default styled(App)`
       align-items: center;
       height: 50px;
       form {
+        display: flex;
         margin-right: 15px;
         width: 350px;
+      }
+      label {
+        transform: rotate(180deg);
+        img {
+          opacity: 0.7;
+          width: 18px;
+          height: 18px;
+        }
       }
       input {
         font-size: 1em;
         margin: 0;
+        margin-left: 15px;
         height: 100%;
         background-color: transparent;
         border: 0;
         &::placeholder {
           font-style: italic;
-          opacity: 0.3;
+          opacity: 0.5;
         }
         &:focus {
           outline: none;
@@ -258,16 +308,72 @@ export default styled(App)`
   }
   footer {
     width: 100%;
-    border-top: solid 1px black;
+    height: 30px;
     display: flex;
-    font-size: 18px;
-    display: flex;
-    justify-content: space-between
+    justify-content: space-between;
+    padding: 0 7px;
+    button {
+      cursor: pointer;
+      background: transparent;
+      border: 0;
+      &:focus {
+        outline: 0;
+      }
+      &:hover {
+        animation: on-button-hover 800ms forwards;
+      }
+    }
     .clear-completed {
+      display: flex;
+      justify-content: center;
+      button {
+        color: #b60000;
+      }
     }
     .selected {
       display: flex;
       justify-content: space-between;
+    }
+  }
+  @keyframes on-button-hover {
+    0% { transform: scale(1);}
+    20% { transform: scale(1.1);}
+    40% { transform: scale(1);}
+    100% { transform: scale(1);}
+  }
+
+  @media (max-width:768px) {
+    .todo-title {
+      transform: translateY(-38px);
+    }
+    .wrapper, .wrapper-editing {
+      width: 300px;
+    }
+    header {
+      height: 40px;
+      padding: 2px 10px;
+      .input-container {
+        height: 40px;      
+        form {
+          margin-right: 5px;
+          width: 220px;
+          input {
+            font-size: .6em;
+            margin-left: 0;
+            &::placeholder {
+              font-style: italic;
+              opacity: 0.5;
+              color: gray;
+            }
+          }
+          label {
+            display: none;
+          }
+        }
+      }
+    }
+    footer {
+      display: none; 
     }
   }
 `;
