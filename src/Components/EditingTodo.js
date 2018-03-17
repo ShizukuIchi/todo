@@ -1,17 +1,23 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
+import { styler, easing, tween } from 'popmotion';
 
 class EditingTodo extends Component {
   state = {
     text: this.props.text,
   }
-  componentWillReceiveProps(nextProps) {
-    this.setState({
-      text: nextProps.text,
-    });
-  }
   componentDidMount() {
-    this.props.getRef(this.element);
+    this.styler = styler(this.element);
+  }
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.text) {
+      this.setState({
+        text: nextProps.text,
+      });
+      this.mount(nextProps.position);
+    } else {
+      this.unmount();
+    }
   }
   onEdited = () => {
     const { onEdited } = this.props;
@@ -22,10 +28,32 @@ class EditingTodo extends Component {
     e.preventDefault();
     this.onEdited();
   }
-  onChange = (e) => {
+  onChange = ({ target: { value } }) => {
     this.setState({
-      text: e.target.value,
+      text: value,
     });
+  }
+  mount = ({ x, y }) => {
+    this.element.style.visibility = '';
+    tween({
+      from: { top: y, left: x, opacity: 0 },
+      to: { top: y - 5, left: x + 5, opacity: 1 },
+      duration: 500,
+      ease: easing.backOut,
+    }).start(this.styler.set);
+  }
+  unmount = () => {
+    setTimeout(() => {
+      this.element.style.visibility = 'hidden';
+    }, 500);
+    const x = this.styler.get('left');
+    const y = this.styler.get('top');
+    tween({
+      from: { top: y, left: x, opacity: 1 },
+      to: { top: y + 5, left: x - 5, opacity: 0 },
+      duration: 500,
+      ease: easing.backOut,
+    }).start(this.styler.set);
   }
   render() {
     const {
@@ -51,7 +79,7 @@ class EditingTodo extends Component {
 
 export default styled(EditingTodo)`
   opacity: 0;
-  visibility: ${({ text }) => (text ? '' : 'hidden')};
+  /* visibility: hidden; */
   position: fixed;
   top: 0;
   display: flex;

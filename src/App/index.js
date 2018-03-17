@@ -1,20 +1,10 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
-import setting from '../assets/settings.svg';
 import { styler, tween, easing } from 'popmotion';
 
+import setting from '../assets/settings.svg';
 import Todo from '../Components/Todo';
 import EditingTodo from '../Components/EditingTodo';
-
-const setCSStoBlur = (container) => {
-  container.style.filter = 'blur(2px)';
-  container.style.opacity = '0.7';
-};
-
-const setCSSnotBlur = (container) => {
-  container.style.filter = 'blur(0px)';
-  container.style.opacity = '1';
-};
 
 class App extends Component {
   state = {
@@ -30,14 +20,13 @@ class App extends Component {
     ],
     value: '',
     editing: {
-      text: '',
+      position: { x: -1, y: -1 },
       key: '',
     },
-    mode: 'add', // add, filter
     selected: 'all', // all, completed, uncompleted
   };
   componentDidMount() {
-    this.editingTodoStyler = styler(this.editingTodo);
+    // this.editingTodoStyler = styler(this.editingTodo);
   }
   onCheck = (key) => {
     this.setState({
@@ -60,48 +49,28 @@ class App extends Component {
     });
   }
   onEdit = (key, { x, y }) => {
-    const todo = this.state.todos.find(t => t.key === key);
     this.setState({
       editing: {
-        text: todo.data.text,
+        position: { x, y },
         key,
       },
     });
-    setCSStoBlur(this.wrapper);
-    tween({
-      from: { top: y, left: x, opacity: 0 },
-      to: { top: y - 5, left: x + 5, opacity: 1 },
-      duration: 500,
-      ease: easing.backOut,
-    }).start(this.editingTodoStyler.set);
   }
 
   onEdited = (text) => {
     const todoIndex = this.state.todos.findIndex(t => t.key === this.state.editing.key);
     const { key, data: { isDone } } = this.state.todos[todoIndex];
-    const y = this.editingTodoStyler.get('top');
-    const x = this.editingTodoStyler.get('left');
     this.setState({
       todos: [
         ...this.state.todos.slice(0, todoIndex),
         { key, data: { text, isDone } },
         ...this.state.todos.slice(todoIndex + 1),
       ],
+      editing: {
+        position: { x: -1, y: -1 },
+        key: '',
+      },
     });
-    setTimeout(() => {
-      this.setState({
-        editing: {
-          text: '',
-          key: '',
-        },
-      });
-    }, 300);
-    setCSSnotBlur(this.wrapper);
-    tween({
-      from: { top: y, left: x, opacity: 1 },
-      to: { top: y + 5, left: x - 5, opacity: 0 },
-      duration: 300,
-    }).start(this.editingTodoStyler.set);
   }
   handleChange = ({ target: { value } }) => {
     this.setState({ value });
@@ -136,9 +105,14 @@ class App extends Component {
     return isDone === false;
   }
   render() {
+    console.log(this.state.editing.position);
+
     const { className } = this.props;
     const { todos, value, selected } = this.state;
 
+    const editingText = this.state.editing.key
+      ? this.state.todos.find(t => t.key === this.state.editing.key).data.text
+      : '';
     const clearButton = value && <ClearButton onClick={this.clearValue}>X</ClearButton>;
     const todoElements = todos.map(({ key, data: { text, isDone } }) => (
       <Todo
@@ -151,10 +125,9 @@ class App extends Component {
         onEdit={position => this.onEdit(key, position)}
       />
     ));
-
     return (
       <section className={className}>
-        <section className="wrapper" ref={r => this.wrapper = r}>
+        <section ref={(r) => { this.wrapper = r; }} className={this.state.editing.key ? 'wrapper-editing' : 'wrapper'}>
           <h1 className="todo-title">todos</h1>
           <header>
             <section className="input-container">
@@ -174,7 +147,7 @@ class App extends Component {
             hi i am footer
           </footer>
         </section>
-        <EditingTodo text={this.state.editing.text} getRef={r => this.editingTodo = r} onEdited={this.onEdited} />
+        <EditingTodo text={editingText} position={this.state.editing.position} onEdited={this.onEdited} />
       </section>
     );
   }
@@ -202,12 +175,16 @@ export default styled(App)`
     transform: translate(30px ,-55px);
   }
 
-  .wrapper {
+  .wrapper, .wrapper-editing {
     transition-duration: .5s;
     background-color: white;
     width: 500px;
     box-shadow: 4px 10px 25px -8px rgba(0,0,0,0.75);
     border-radius: 2px;
+  }
+  .wrapper-editing {
+    filter: blur(2px);
+    opacity: 0.7;
   }
 
   header {
