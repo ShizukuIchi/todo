@@ -1,1 +1,3 @@
 Todo list
+
+yarn start
