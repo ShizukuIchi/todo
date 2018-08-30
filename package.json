@@ -2,9 +2,9 @@
   "name": "todo",
   "version": "0.1.0",
   "private": true,
-  "homepage": "http://sh1zuku-todo.csie.io",
+  "homepage": "https://ShizukuIchi.github.io/todo-app",
   "dependencies": {
-    "gh-pages": "^1.1.0",
+    "gh-pages": "^1.2.0",
     "popmotion": "^8.1.17",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
