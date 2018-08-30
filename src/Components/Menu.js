@@ -12,48 +12,82 @@ class Menu extends Component {
     onSC: PropTypes.func.isRequired,
     onCC: PropTypes.func.isRequired,
     selected: PropTypes.string.isRequired,
-  }
+  };
   onClose = () => {
     this.props.onToggle();
-  }
-  onCCClick = (e) => {
+  };
+  onClearCompleted = e => {
     e.stopPropagation();
-    this.props.onCC();
+    this.props.onClearCompleted();
     this.props.onToggle();
-  }
-  onSCClick = (e) => {
+  };
+  onSelectComplete = e => {
     e.stopPropagation();
-    this.props.onSC();
+    this.props.onSelectCompleted();
     this.props.onToggle();
-  }
-  onSUClick = (e) => {
+  };
+  onSelectUncompleted = e => {
     e.stopPropagation();
-    this.props.onSU();
+    this.props.onSelectUncompleted();
     this.props.onToggle();
-  }
-  onSAlick = (e) => {
+  };
+  onSelectAll = e => {
     e.stopPropagation();
-    this.props.onSA();
+    this.props.onSelectAll();
     this.props.onToggle();
-  }
+  };
   render() {
     const { className } = this.props;
-    return this.props.show && (
-      <div className={className} onClick={this.onClose} >
-        <div className="model">
-          <button style={{ color: 'red' }} onClick={this.onCCClick} type="button">Clear Completed</button>
-          <button style={{ color: this.props.selected === 'all' ? '#1c88ff' : 'black' }} onClick={this.onSAlick} type="button">Select All</button>
-          <button style={{ color: this.props.selected === 'completed' ? '#1c88ff' : 'black' }} onClick={this.onSCClick} type="button">Select Completed</button>
-          <button style={{ color: this.props.selected === 'uncompleted' ? '#1c88ff' : 'black' }} onClick={this.onSUClick} type="button">Select Uncompleted</button>
+    return (
+      this.props.show && (
+        <div className={className} onClick={this.onClose}>
+          <div className="model">
+            <button
+              style={{ color: 'red' }}
+              onClick={this.onClearCompleted}
+              type="button"
+            >
+              Clear Completed
+            </button>
+            <button
+              style={{
+                color: this.props.selected === 'all' ? '#1c88ff' : 'black',
+              }}
+              onClick={this.onSelectAll}
+              type="button"
+            >
+              Select All
+            </button>
+            <button
+              style={{
+                color:
+                  this.props.selected === 'completed' ? '#1c88ff' : 'black',
+              }}
+              onClick={this.onSelectComplete}
+              type="button"
+            >
+              Select Completed
+            </button>
+            <button
+              style={{
+                color:
+                  this.props.selected === 'uncompleted' ? '#1c88ff' : 'black',
+              }}
+              onClick={this.onSelectUncompleted}
+              type="button"
+            >
+              Select Uncompleted
+            </button>
+          </div>
         </div>
-      </div>
+      )
     );
   }
 }
 
 export default styled(Menu)`
   position: fixed;
-  top:0;
+  top: 0;
   bottom: 0;
   left: 0;
   right: 0;
@@ -82,11 +116,11 @@ export default styled(Menu)`
     button:not(:last-child) {
       margin-bottom: 5px;
       padding-bottom: 5px;
-      border-bottom: solid 1px rgba(0,0,0,0.3);
+      border-bottom: solid 1px rgba(0, 0, 0, 0.3);
     }
   }
 
-  @media (max-width:768px) {
+  @media (max-width: 768px) {
     .model {
       width: 250px;
     }
