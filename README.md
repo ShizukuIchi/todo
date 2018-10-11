@@ -5,7 +5,7 @@ Todo list
 yarn start
 ```
 ## Demo
-[this is demo.](http://sh1zuku-todo.csie.io) :)
+[this is demo.](http://sh1zuku.csie.io/todo) :)
 
 ![preview](https://i.imgur.com/8iywFA9.png)
 
